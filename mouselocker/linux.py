@@ -13,6 +13,8 @@ from Xlib.ext.xtest import fake_input
 
 class EventObj:
 	
+	mouse_lock_type = 1
+	mouse_inc = 2
 	is_listen_mouse = False
 	is_listen_keyboard = False
 	
@@ -55,39 +57,83 @@ def listen_mouse(event_obj):
 	root = display.screen().root
 	active_window = get_active_window(display)
 	active_window_rect = get_window_rect(active_window, root)
+	
+	if event_obj.mouse_lock_type == 1:
+		
+		while event_obj.is_listen_mouse:
+			data = root.query_pointer()._data
+			
+			is_new = False
+			x = data["root_x"]
+			y = data["root_y"]
+			new_x = x
+			new_y = y
+			
+			if x < active_window_rect[0] + event_obj.mouse_inc:
+				is_new = True
+				new_x = active_window_rect[0] + event_obj.mouse_inc
+			
+			if y < active_window_rect[1] + event_obj.mouse_inc:
+				is_new = True
+				new_y = active_window_rect[1] + event_obj.mouse_inc
+			
+			if x > active_window_rect[0] + active_window_rect[2] - event_obj.mouse_inc:
+				is_new = True
+				new_x = active_window_rect[0] + active_window_rect[2] - event_obj.mouse_inc
+			
+			if y > active_window_rect[1] + active_window_rect[3] - event_obj.mouse_inc:
+				is_new = True
+				new_y = active_window_rect[1] + active_window_rect[3] - event_obj.mouse_inc
+			
+			if is_new:
+				set_mouse_pos(display, new_x, new_y)
+			
+			sleep(0.005)
 
-	while event_obj.is_listen_mouse:
-		data = root.query_pointer()._data
+	
+	else:
+	
+		# X.NoEventMask
+		# X.ButtonPressMask | X.ButtonReleaseMask | X.KeyPressMask | X.KeyReleaseMask
+		# X.EnterWindowMask | X.LeaveWindowMask | X.PointerMotionMask
+		active_window.grab_pointer(True, X.ButtonPressMask | X.ButtonReleaseMask, \
+			X.GrabModeAsync, X.GrabModeAsync, active_window, 0, X.CurrentTime)
 		
-		is_new = False
-		x = data["root_x"]
-		y = data["root_y"]
-		new_x = x
-		new_y = y
+		#print (1)
+		#print (X.ButtonPressMask)
+		#print (X.ButtonReleaseMask)
+		print (active_window.get_wm_name())
+		print (active_window.get_wm_class())
+		prev_time = X.CurrentTime
 		
-		if x < active_window_rect[0] + 3:
-			is_new = True
-			new_x = active_window_rect[0] + 3
+		while event_obj.is_listen_mouse:
+			
+			#display.allow_events(X.ReplayPointer, X.CurrentTime)
+			
+			pos = root.display.pending_events()
+			count = pos
+			while pos > 0:
+				e = root.display.next_event()
+				active_window.send_event(e)
+				#print (e.window.get_wm_class())
+				#display.send_event(active_window, e, X.ButtonPressMask | X.ButtonReleaseMask)
+				pos = pos - 1
+			
+			if count > 0:
+				#display.flush()
+				#display.allow_events(X.AllowReplayPointer, prev_time)
+				prev_time = X.CurrentTime
+			
+			sleep(0.01)
 		
-		if y < active_window_rect[1] + 3:
-			is_new = True
-			new_y = active_window_rect[1] + 3
+		#print (2)
 		
-		if x > active_window_rect[0] + active_window_rect[2] - 3:
-			is_new = True
-			new_x = active_window_rect[0] + active_window_rect[2] - 3
-		
-		if y > active_window_rect[1] + active_window_rect[3] - 3:
-			is_new = True
-			new_y = active_window_rect[1] + active_window_rect[3] - 3
-		
-		if is_new:
-			set_mouse_pos(display, new_x, new_y)
-		
-		sleep(0.05)
-
-		
-		
+		#display.flush()
+		display.ungrab_pointer(X.CurrentTime)
+		display.sync()
+	
+	
+	
 def start_listen_mouse(event_obj):
 	t = threading.Thread(target=listen_mouse, args=(event_obj,))
 	t.start()
@@ -113,23 +159,36 @@ def listen_keyboard(event_obj):
 	#root.grab_key(X.AnyKey, X.AnyModifier, True, X.GrabModeAsync, X.GrabModeAsync)
 	root.grab_key(event_obj.KEY_CODE_LOCK, X.AnyModifier, True, X.GrabModeAsync, X.GrabModeAsync)
 	root.grab_key(event_obj.KEY_CODE_UNLOCK, X.AnyModifier, True, X.GrabModeAsync, X.GrabModeAsync)
+	prev_time = X.CurrentTime
 	
 	while (event_obj.is_listen_keyboard):
 		
-		if root.display.pending_events() > 0:		
-			ev = root.display.next_event()
+		pos = root.display.pending_events()
+		count = pos
+		while pos > 0:
+			e = root.display.next_event()
+			pos = pos - 1
+			
 			try:
-				keyboard_event(event_obj, ev)
+				keyboard_event(event_obj, e)
 			except Exception as e:
 				print (e)
 				pass
 			
-			#display.send_event(ev.child, ev)
+			#display.send_event(ev.child, e)
 			#display.allow_events(X.ReplayKeyboard, X.CurrentTime)
 		
-		sleep(0.05)
+		if count > 0:
+			display.flush()
+			display.allow_events(X.ReplayKeyboard, prev_time)
+			prev_time = X.CurrentTime
 		
-		
+		sleep(0.01)
+	
+	#display.flush()
+	display.ungrab_keyboard(X.CurrentTime)
+	display.sync()
+	
 def start_listen_keyboard(event_obj):
 	t = threading.Thread(target=listen_keyboard, args=(event_obj,))
 	t.start()

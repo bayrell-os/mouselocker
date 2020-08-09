@@ -100,14 +100,16 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 	
 	
 	def onLock(self):
-		self.setTrayIcon(2);
-		self.startListenMouse();
+		if self.status_active == True:
+			self.setTrayIcon(2);
+			self.startListenMouse();
 		pass
 		
 		
 	def onUnLock(self):
-		self.setTrayIcon(1);
-		self.stopListenMouse();
+		if self.status_active == True:
+			self.setTrayIcon(1);
+			self.stopListenMouse();
 		pass
 	
 	
