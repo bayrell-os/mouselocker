@@ -23,7 +23,7 @@ from os.path import abspath, dirname, join
 
 setup(
 	name="mouselocker",
-	version="0.2.1",
+	version="0.2.2",
 	description="Mouse Locker Program",
 	long_description=open(join(abspath(dirname(__file__)), 'README.md'), encoding='utf-8').read(),
 	long_description_content_type='text/markdown',

@@ -14,7 +14,7 @@ from Xlib.ext.xtest import fake_input
 class EventObj:
 	
 	mouse_lock_type = 1
-	mouse_inc = 2
+	mouse_inc = 1
 	is_listen_mouse = False
 	is_listen_keyboard = False
 	
@@ -69,19 +69,19 @@ def listen_mouse(event_obj):
 			new_x = x
 			new_y = y
 			
-			if x < active_window_rect[0] + event_obj.mouse_inc:
+			if x <= active_window_rect[0] + event_obj.mouse_inc:
 				is_new = True
 				new_x = active_window_rect[0] + event_obj.mouse_inc
 			
-			if y < active_window_rect[1] + event_obj.mouse_inc:
+			if y <= active_window_rect[1] + event_obj.mouse_inc:
 				is_new = True
 				new_y = active_window_rect[1] + event_obj.mouse_inc
 			
-			if x > active_window_rect[0] + active_window_rect[2] - event_obj.mouse_inc:
+			if x >= active_window_rect[0] + active_window_rect[2] - event_obj.mouse_inc:
 				is_new = True
 				new_x = active_window_rect[0] + active_window_rect[2] - event_obj.mouse_inc
 			
-			if y > active_window_rect[1] + active_window_rect[3] - event_obj.mouse_inc:
+			if y >= active_window_rect[1] + active_window_rect[3] - event_obj.mouse_inc:
 				is_new = True
 				new_y = active_window_rect[1] + active_window_rect[3] - event_obj.mouse_inc
 			
@@ -175,13 +175,19 @@ def listen_keyboard(event_obj):
 				print (e)
 				pass
 			
+			#active_window = get_active_window(display)
+			#e.window = active_window
+			#active_window.send_event(e)
+			#print(e.window)
+			#print(active_window)
+			
 			#display.send_event(ev.child, e)
 			#display.allow_events(X.ReplayKeyboard, X.CurrentTime)
 		
-		if count > 0:
-			display.flush()
-			display.allow_events(X.ReplayKeyboard, prev_time)
-			prev_time = X.CurrentTime
+		#if count > 0:
+		#	display.flush()
+		#	display.allow_events(X.ReplayKeyboard, prev_time)
+		#	prev_time = X.CurrentTime
 		
 		sleep(0.01)
 	
