@@ -5,12 +5,12 @@
 """
 Инструкции:
 
-python3 setup.py sdist - Сборка пакета
-python3 setup.py develop - Установка пакета для разработки
-pip3 install dist/mouselocker-0.2.0.zip - Установка пакета
-pip3 uninstall mouselocker - Удаление пакета
-python3 setup.py register - Зарегистрировать пакет в pypi
-python3 setup.py sdist upload - Залить на сервер
+python3 setup.py sdist bdist_wheel - Сборка пакета
+sudo python3 setup.py develop - Установка пакета для разработки
+sudo python3 setup.py develop -u - Uninstall
+sudo pip3 install dist/mouselocker-0.2.1.tar.gz - Установка пакета
+sudo pip3 uninstall mouselocker - Удаление пакета
+python3 -m twine upload --repository pypi dist/* - Залить на сервер
 twine upload dist/* - Новая команда залить в pypi
 
 Список классификации:
@@ -23,7 +23,7 @@ from os.path import abspath, dirname, join
 
 setup(
 	name="mouselocker",
-	version="0.2.0",
+	version="0.2.1",
 	description="Mouse Locker Program",
 	long_description=open(join(abspath(dirname(__file__)), 'README.md'), encoding='utf-8').read(),
 	long_description_content_type='text/markdown',
